@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test rápido de teclado</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0d1117;
+            color: #e6edf3;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 32px 20px 24px;
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+        }
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+        .header p {
+            color: #8b949e;
+            font-size: 14px;
+        }
+
+        /* Warning */
+        .warning {
+            background: #1c1206;
+            border: 1px solid #5a3e00;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 16px;
+            font-size: 13px;
+            color: #f0c000;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex;
+            gap: 12px;
+            margin: 16px;
+            flex-wrap: wrap;
+        }
+        .stat-card {
+            flex: 1;
+            min-width: 100px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+        }
+        .stat-card .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #6c63ff;
+        }
+        .stat-card .stat-label {
+            font-size: 11px;
+            color: #8b949e;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .stat-card.success .stat-value { color: #3fb950; }
+        .stat-card.remaining .stat-value { color: #f0c000; }
+
+        /* Progress */
+        .progress-section {
+            margin: 0 16px 16px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #30363d;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6c63ff, #3fb950);
+            border-radius: 3px;
+            transition: width 0.3s;
+            width: 0%;
+        }
+        .progress-label {
+            font-size: 12px;
+            color: #8b949e;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+
+        /* Test Section */
+        .test-section {
+            margin: 16px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .test-title {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+        .test-desc {
+            font-size: 13px;
+            color: #8b949e;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        /* Criteria */
+        .criteria {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+        .criteria-pass {
+            color: #3fb950;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+        .criteria-fail {
+            color: #f85149;
+            font-size: 13px;
+        }
+
+        /* Last Key Display */
+        .last-key-display {
+            width: 100%;
+            height: 80px;
+            background: #0d1117;
+            border: 2px solid #30363d;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            transition: border-color 0.2s;
+        }
+        .last-key-display.active {
+            border-color: #6c63ff;
+        }
+        .last-key-name {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .last-key-code {
+            font-size: 12px;
+            color: #8b949e;
+            margin-top: 4px;
+        }
+
+        /* Keyboard Layout */
+        .keyboard-container {
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+        .keyboard {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 900px;
+            padding: 12px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+        }
+        .kb-row {
+            display: flex;
+            gap: 4px;
+        }
+        .key {
+            height: 38px;
+            min-width: 38px;
+            padding: 0 6px;
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+            color: #8b949e;
+            cursor: default;
+            user-select: none;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+        .key.pressed {
+            background: #238636;
+            border-color: #3fb950;
+            color: #fff;
+        }
+        .key.just-pressed {
+            background: #6c63ff;
+            border-color: #8b7dff;
+            color: #fff;
+            transform: scale(0.94);
+        }
+
+        /* Key Sizes */
+        .key-backspace { min-width: 76px; }
+        .key-tab { min-width: 57px; }
+        .key-caps { min-width: 68px; }
+        .key-enter { min-width: 83px; }
+        .key-lshift { min-width: 83px; }
+        .key-rshift { min-width: 106px; }
+        .key-space { min-width: 240px; flex-grow: 1; }
+        .key-ctrl { min-width: 52px; }
+        .key-alt { min-width: 48px; }
+        .key-fn { min-width: 38px; }
+        .key-win { min-width: 48px; }
+
+        /* Status */
+        .status-msg {
+            text-align: center;
+            padding: 10px;
+            font-size: 13px;
+            color: #8b949e;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+        .status-msg.success {
+            background: #0b1a0b;
+            border-color: #238636;
+            color: #3fb950;
+        }
+        .status-msg.active-status {
+            background: #0b1628;
+            border-color: #1f6feb;
+            color: #58a6ff;
+        }
+
+        /* Btn */
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-reset {
+            background: #30363d;
+            color: #c9d1d9;
+        }
+        .btn-reset:hover { background: #3d444d; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 24px;
+            font-size: 11px;
+            color: #484f58;
+            border-top: 1px solid #30363d;
+            margin-top: 16px;
+        }
+
+        /* Untested keys list */
+        .untested-keys {
+            margin-top: 12px;
+            padding: 12px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #8b949e;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+        .untested-keys span {
+            display: inline-block;
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            padding: 2px 6px;
+            margin: 2px;
+            font-size: 11px;
+        }
+
+        /* Manual verify section */
+        .manual-section {
+            margin-top: 16px;
+            padding: 14px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+        }
+        .manual-section-title {
+            font-size: 13px;
+            color: #f0c000;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .manual-section-desc {
+            font-size: 12px;
+            color: #8b949e;
+            margin-bottom: 10px;
+        }
+        .manual-btn {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #30363d;
+            border: 1px solid #484f58;
+            border-radius: 5px;
+            color: #c9d1d9;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 3px;
+            transition: all 0.15s;
+        }
+        .manual-btn:hover {
+            background: #3d444d;
+        }
+        .manual-btn.verified {
+            background: #238636;
+            border-color: #3fb950;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>⌨️ Test rápido de teclado</h1>
+        <p>Pulsa cada tecla para verificar la funcionalidad completa del teclado</p>
+    </div>
+
+    <!-- Warning -->
+    <div class="warning">
+        ⚠️ Primero haz clic en cualquier parte de esta página para darle foco, luego comienza a pulsar teclas. Algunas teclas (como PrintScreen) son interceptadas por el sistema operativo y no pueden ser detectadas — usa los botones de verificación manual más abajo.
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-bar">
+        <div class="stat-card success">
+            <div class="stat-value" id="tested-count">0</div>
+            <div class="stat-label">Probadas</div>
+        </div>
+        <div class="stat-card remaining">
+            <div class="stat-value" id="remaining-count">0</div>
+            <div class="stat-label">Restantes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="total-count">0</div>
+            <div class="stat-label">Total teclas</div>
+        </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-section">
+        <div class="progress-label" id="progress-label">0% Completado</div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+
+    <!-- Main Test -->
+    <section class="test-section">
+        <h2 class="test-title">Test de botones del teclado</h2>
+        <p class="test-desc">Pulsa cada tecla del teclado. Las teclas se ponen verdes cuando se detectan correctamente. La última tecla pulsada se muestra abajo. Prueba todas las teclas para verificar que ninguna está atascada, sin respuesta o registrando incorrectamente.</p>
+
+        <div class="criteria">
+            <div class="criteria-pass">✔ PASS: Todas las teclas se registran correctamente, ninguna atascada ni sin respuesta, cada tecla vuelve a su posición de reposo</div>
+            <div class="criteria-fail">✘ FAIL: La tecla no se registra, se atasca, registra un carácter incorrecto, o genera múltiples entradas</div>
+        </div>
+
+        <!-- Last Key -->
+        <div class="last-key-display" id="last-key-display">
+            <div class="last-key-name" id="last-key-name">Pulsa cualquier tecla...</div>
+            <div class="last-key-code" id="last-key-code"></div>
+        </div>
+
+        <!-- Keyboard Visual -->
+        <div class="keyboard-container">
+            <div class="keyboard" id="keyboard">
+                <!-- Row 1: Function Keys -->
+                <div class="kb-row">
+                    <div class="key key-fn" data-code="Escape">Esc</div>
+                    <div class="key" data-code="F1">F1</div>
+                    <div class="key" data-code="F2">F2</div>
+                    <div class="key" data-code="F3">F3</div>
+                    <div class="key" data-code="F4">F4</div>
+                    <div class="key" data-code="F5">F5</div>
+                    <div class="key" data-code="F6">F6</div>
+                    <div class="key" data-code="F7">F7</div>
+                    <div class="key" data-code="F8">F8</div>
+                    <div class="key" data-code="F9">F9</div>
+                    <div class="key" data-code="F10">F10</div>
+                    <div class="key" data-code="F11">F11</div>
+                    <div class="key" data-code="F12">F12</div>
+                    <div class="key" data-code="ScrollLock">ScrLk</div>
+                    <div class="key" data-code="Pause">Pause</div>
+                </div>
+                <!-- Row 2: Number Row -->
+                <div class="kb-row">
+                    <div class="key" data-code="Backquote">`</div>
+                    <div class="key" data-code="Digit1">1</div>
+                    <div class="key" data-code="Digit2">2</div>
+                    <div class="key" data-code="Digit3">3</div>
+                    <div class="key" data-code="Digit4">4</div>
+                    <div class="key" data-code="Digit5">5</div>
+                    <div class="key" data-code="Digit6">6</div>
+                    <div class="key" data-code="Digit7">7</div>
+                    <div class="key" data-code="Digit8">8</div>
+                    <div class="key" data-code="Digit9">9</div>
+                    <div class="key" data-code="Digit0">0</div>
+                    <div class="key" data-code="Minus">-</div>
+                    <div class="key" data-code="Equal">=</div>
+                    <div class="key key-backspace" data-code="Backspace">Backspace</div>
+                </div>
+                <!-- Row 3: QWERTY -->
+                <div class="kb-row">
+                    <div class="key key-tab" data-code="Tab">Tab</div>
+                    <div class="key" data-code="KeyQ">Q</div>
+                    <div class="key" data-code="KeyW">W</div>
+                    <div class="key" data-code="KeyE">E</div>
+                    <div class="key" data-code="KeyR">R</div>
+                    <div class="key" data-code="KeyT">T</div>
+                    <div class="key" data-code="KeyY">Y</div>
+                    <div class="key" data-code="KeyU">U</div>
+                    <div class="key" data-code="KeyI">I</div>
+                    <div class="key" data-code="KeyO">O</div>
+                    <div class="key" data-code="KeyP">P</div>
+                    <div class="key" data-code="BracketLeft">[</div>
+                    <div class="key" data-code="BracketRight">]</div>
+                    <div class="key" data-code="Backslash" style="min-width:57px;">\</div>
+                </div>
+                <!-- Row 4: Home Row -->
+                <div class="kb-row">
+                    <div class="key key-caps" data-code="CapsLock">Caps</div>
+                    <div class="key" data-code="KeyA">A</div>
+                    <div class="key" data-code="KeyS">S</div>
+                    <div class="key" data-code="KeyD">D</div>
+                    <div class="key" data-code="KeyF">F</div>
+                    <div class="key" data-code="KeyG">G</div>
+                    <div class="key" data-code="KeyH">H</div>
+                    <div class="key" data-code="KeyJ">J</div>
+                    <div class="key" data-code="KeyK">K</div>
+                    <div class="key" data-code="KeyL">L</div>
+                    <div class="key" data-code="Semicolon">;</div>
+                    <div class="key" data-code="Quote">'</div>
+                    <div class="key key-enter" data-code="Enter">Enter</div>
+                </div>
+                <!-- Row 5: Bottom Row -->
+                <div class="kb-row">
+                    <div class="key key-lshift" data-code="ShiftLeft">L Shift</div>
+                    <div class="key" data-code="KeyZ">Z</div>
+                    <div class="key" data-code="KeyX">X</div>
+                    <div class="key" data-code="KeyC">C</div>
+                    <div class="key" data-code="KeyV">V</div>
+                    <div class="key" data-code="KeyB">B</div>
+                    <div class="key" data-code="KeyN">N</div>
+                    <div class="key" data-code="KeyM">M</div>
+                    <div class="key" data-code="Comma">,</div>
+                    <div class="key" data-code="Period">.</div>
+                    <div class="key" data-code="Slash">/</div>
+                    <div class="key key-rshift" data-code="ShiftRight">R Shift</div>
+                </div>
+                <!-- Row 6: Space Row -->
+                <div class="kb-row">
+                    <div class="key key-ctrl" data-code="ControlLeft">L Ctrl</div>
+                    <div class="key key-win" data-code="MetaLeft">Win</div>
+                    <div class="key key-alt" data-code="AltLeft">L Alt</div>
+                    <div class="key key-space" data-code="Space">Espacio</div>
+                    <div class="key key-alt" data-code="AltRight">R Alt</div>
+                    <div class="key key-fn" data-code="ContextMenu">Menu</div>
+                    <div class="key key-ctrl" data-code="ControlRight">R Ctrl</div>
+                </div>
+                <!-- Row 7: Navigation -->
+                <div class="kb-row" style="margin-top: 8px;">
+                    <div class="key" data-code="Insert">Ins</div>
+                    <div class="key" data-code="Home">Home</div>
+                    <div class="key" data-code="PageUp">PgUp</div>
+                    <div class="key" data-code="Delete">Del</div>
+                    <div class="key" data-code="End">End</div>
+                    <div class="key" data-code="PageDown">PgDn</div>
+                    <div style="width: 20px;"></div>
+                    <div class="key" data-code="ArrowUp">↑</div>
+                    <div style="width: 20px;"></div>
+                    <div class="key" data-code="ArrowLeft">←</div>
+                    <div class="key" data-code="ArrowDown">↓</div>
+                    <div class="key" data-code="ArrowRight">→</div>
+                </div>
+                <!-- Row 8: Numpad -->
+                <div class="kb-row" style="margin-top: 8px;">
+                    <div class="key" data-code="NumLock">Num</div>
+                    <div class="key" data-code="NumpadDivide">/</div>
+                    <div class="key" data-code="NumpadMultiply">*</div>
+                    <div class="key" data-code="NumpadSubtract">-</div>
+                    <div class="key" data-code="Numpad7">7</div>
+                    <div class="key" data-code="Numpad8">8</div>
+                    <div class="key" data-code="Numpad9">9</div>
+                    <div class="key" data-code="NumpadAdd">+</div>
+                    <div class="key" data-code="Numpad4">4</div>
+                    <div class="key" data-code="Numpad5">5</div>
+                    <div class="key" data-code="Numpad6">6</div>
+                    <div class="key" data-code="Numpad1">1</div>
+                    <div class="key" data-code="Numpad2">2</div>
+                    <div class="key" data-code="Numpad3">3</div>
+                    <div class="key" data-code="NumpadEnter">Ent</div>
+                    <div class="key" data-code="Numpad0" style="min-width:76px;">0</div>
+                    <div class="key" data-code="NumpadDecimal">.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manual Verify Section -->
+        <div class="manual-section">
+            <div class="manual-section-title">⚠️ Teclas interceptadas por el OS — verificación manual</div>
+            <div class="manual-section-desc">Estas teclas son capturadas por el sistema operativo y el navegador no puede detectarlas. Pulsa la tecla físicamente para confirmar que funciona, luego haz clic en el botón de abajo para marcarla como verificada:</div>
+            <span class="manual-btn" data-manual="PrintScreen" onclick="manualVerify(this, 'PrintScreen')">Print Screen</span>
+        </div>
+
+        <!-- Status -->
+        <div class="status-msg" id="test-status">Listo — pulsa cualquier tecla para comenzar el test</div>
+
+        <!-- Untested Keys -->
+        <div class="untested-keys" id="untested-keys">
+            <strong style="color:#f0c000;">Teclas no probadas:</strong><br>
+        </div>
+
+        <!-- Buttons -->
+        <div class="btn-row">
+            <button class="btn btn-reset" onclick="resetAll()">↺ Reiniciar todos los tests</button>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <div class="footer">
+        Test rápido de teclado v1.2 | Layout completo | No se recopilan datos
+    </div>
+
+    <script>
+        // Gather all keys from the visual keyboard
+        var allKeys = document.querySelectorAll('.key[data-code]');
+        // Total = keyboard keys + manual keys (PrintScreen)
+        var manualKeys = ['PrintScreen'];
+        var totalKeys = allKeys.length + manualKeys.length;
+        var testedKeys = new Set();
+
+        // Update counts
+        function updateStats() {
+            var tested = testedKeys.size;
+            var remaining = totalKeys - tested;
+            var percent = Math.round((tested / totalKeys) * 100);
+
+            document.getElementById('tested-count').textContent = tested;
+            document.getElementById('remaining-count').textContent = remaining;
+            document.getElementById('total-count').textContent = totalKeys;
+            document.getElementById('progress-fill').style.width = percent + '%';
+            document.getElementById('progress-label').textContent = percent + '% Completado';
+
+            // Build untested list
+            var untestedEl = document.getElementById('untested-keys');
+            var untestedArr = [];
+            allKeys.forEach(function(k) {
+                if (!testedKeys.has(k.getAttribute('data-code'))) {
+                    untestedArr.push(k.textContent.trim());
+                }
+            });
+            // Check manual keys
+            manualKeys.forEach(function(code) {
+                if (!testedKeys.has(code)) {
+                    untestedArr.push('PrtSc (manual)');
+                }
+            });
+
+            if (untestedArr.length === 0) {
+                untestedEl.innerHTML = '<strong style="color:#3fb950;">✓ ¡Todas las teclas probadas!</strong>';
+                document.getElementById('test-status').textContent = '✓ ¡Todas las teclas del teclado probadas correctamente!';
+                document.getElementById('test-status').className = 'status-msg success';
+            } else {
+                untestedEl.innerHTML = '<strong style="color:#f0c000;">Teclas no probadas (' + untestedArr.length + '):</strong><br>' +
+                    untestedArr.map(function(k) { return '<span>' + k + '</span>'; }).join('');
+            }
+        }
+
+        // Init
+        updateStats();
+
+        // Key press handler
+        document.addEventListener('keydown', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var code = e.code;
+
+            // Find matching key element
+            var keyEl = document.querySelector('.key[data-code="' + code + '"]');
+
+            // Update last key display
+            var displayName = e.key === ' ' ? 'Espacio' : e.key;
+            document.getElementById('last-key-name').textContent = displayName;
+            document.getElementById('last-key-code').textContent = 'Código: ' + code + ' | KeyCode: ' + e.keyCode;
+            document.getElementById('last-key-display').classList.add('active');
+
+            if (keyEl) {
+                testedKeys.add(code);
+                keyEl.classList.add('pressed');
+                keyEl.classList.add('just-pressed');
+                setTimeout(function() {
+                    keyEl.classList.remove('just-pressed');
+                }, 200);
+
+                if (testedKeys.size === 1) {
+                    document.getElementById('test-status').textContent = 'Test en curso — sigue pulsando teclas...';
+                    document.getElementById('test-status').className = 'status-msg active-status';
+                }
+            }
+
+            updateStats();
+            return false;
+        }, true);
+
+        document.addEventListener('keyup', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.getElementById('last-key-display').classList.remove('active');
+            return false;
+        }, true);
+
+        // Manual verify for OS-intercepted keys
+        function manualVerify(btn, code) {
+            btn.classList.add('verified');
+            testedKeys.add(code);
+
+            document.getElementById('last-key-name').textContent = btn.textContent + ' (manual)';
+            document.getElementById('last-key-code').textContent = 'Código: ' + code + ' | Verificado manualmente';
+
+            if (testedKeys.size === 1) {
+                document.getElementById('test-status').textContent = 'Test en curso — sigue pulsando teclas...';
+                document.getElementById('test-status').className = 'status-msg active-status';
+            }
+
+            updateStats();
+        }
+
+        // Reset
+        function resetAll() {
+            testedKeys.clear();
+            allKeys.forEach(function(k) {
+                k.classList.remove('pressed', 'just-pressed');
+            });
+            document.querySelectorAll('.manual-btn').forEach(function(btn) {
+                btn.classList.remove('verified');
+            });
+            document.getElementById('last-key-name').textContent = 'Pulsa cualquier tecla...';
+            document.getElementById('last-key-code').textContent = '';
+            document.getElementById('test-status').textContent = 'Listo — pulsa cualquier tecla para comenzar el test';
+            document.getElementById('test-status').className = 'status-msg';
+            updateStats();
+        }
+    </script>
+</body>
+</html>
+
